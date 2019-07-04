@@ -64,6 +64,12 @@ Machine: MacBook 2016; 1.1 GHz Intel Core m3
   rlayPerformance:write:storeLimit:500:entities:10 739ms +0ms
   rlayPerformance:write:storeLimit:500:entities:50 3929ms +0ms
   rlayPerformance:write:storeLimit:500:entities:100 8444ms +0ms
-  rlayPerformance:write:storeLimit:500:entities:500 crash (too many queued requests?)
-  rlayPerformance:write:storeLimit:500:entities:1000 crash (too many queued requests?)
+  rlayPerformance:write:storeLimit:500:entities:500 crash*
+  rlayPerformance:write:storeLimit:500:entities:1000 crash*
+```
+
+```
+*
+client: Invalid JSON RPC response: ""
+server: is fine and still running but seems to be unresponsive
 ```
