@@ -25,7 +25,9 @@ npm run test -- --rpc=http://example.com:1000
 ## Performance Results
 
 Neo4J: Local
+
 Rlay Server: Local
+
 Machine: MacBook 2016; 1.1 GHz Intel Core m3
 
 ```
