@@ -11,21 +11,36 @@ const createClient = (storeLimit = 50, readLimit = 50) => {
   return new Client({ RpcUrl, storeLimit, readLimit });
 }
 
+const purgeDatabase = async rlayClient => {
+  return rlayClient.findEntityByCypher('MATCH (n) DETACH DELETE n');
+}
+
+const findDuplicates = async rlayClient => {
+  return rlayClient.findEntityByCypher(`
+    MATCH (a:RlayEntity)
+    MATCH (b:RlayEntity)
+    WHERE b.cid = a.cid AND NOT b = a
+    RETURN a.cid`);
+}
+
 const main = async () => {
   const debugWrite = debug.extend('write');
 
   const limit = pLimit(1);
+  const entityLimit = pLimit(1);
   const storeLimitIncrements = [1, 10, 50, 100, 500];
-  const entityIncrements = [1, 5, 10, 50, 100, 500, 1000]//, 5000, 10000, 50000];
+  const entityIncrements = [1, 5, 10, 50, 100]//, 500]//, 1000]//, 5000, 10000, 50000];
 
-  storeLimitIncrements.map(async storeLimitIncrement => {
+  return Promise.all(storeLimitIncrements.map(async storeLimitIncrement => {
     return limit(async () => {
       // setup debugger for this param increment
       const thisDebug = debugWrite.extend(`storeLimit:${storeLimitIncrement}`);
       // create the right rlay client for the param increment
-      const rlayClient = createClient(storeLimitIncrement);
-      entityIncrements.map(async entityIncrement => {
-        return limit(async () => {
+      const rlayClient = createClient(storeLimitIncrement, storeLimitIncrement);
+      // reset the database (neo) to empty state
+      await purgeDatabase(rlayClient)
+      await Promise.all(entityIncrements.map(async entityIncrement => {
+        return entityLimit(async () => {
           // setup debugger for this increment
           const thisThisDebug = thisDebug.extend(`entities:${entityIncrement}`);
           // generate unique, random rlay entity objects
@@ -35,9 +50,11 @@ const main = async () => {
           await Promise.all(generatedREOs.map(e => rlayClient.createEntity(e)));
           thisThisDebug('%sms', Date.now() - start);
         });
-      });
+      }));
+      const duplicates = await findDuplicates(rlayClient);
+      thisDebug.extend(`duplicates`)(duplicates.length);
     });
-  });
+  }));
 }
 
 main();

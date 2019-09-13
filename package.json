@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rlay/rlay-client-lib": "^0.2.0-pre.8",
-    "@rlay/transform": "^0.2.1",
+    "@rlay/rlay-client-lib": "^0.2.0-pre.10",
+    "@rlay/transform": "^0.2.3",
     "debug": "^4.1.1",
     "delay": "^4.3.0",
     "uuid": "^3.3.2",
