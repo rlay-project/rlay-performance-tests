@@ -4,24 +4,27 @@ const Docker = require('dockerode');
 const delay = require('delay');
 const uuid = require('uuid');
 
-const startContainer = async (image, debug, desiredPort) => {
+const getFreePort = async (desiredPort) => {
+  const defaultPorts = [8546, 8547];
+  const desiredPorts = [desiredPort, ...defaultPorts];
+  return getPort({port: desiredPorts.filter(check.assigned)});
+}
+
+const startContainer = async (image, imagePort, debug) => {
   // validate image param
   check.assert.string(image, 'expected image to be a string');
   if (image.includes('prod') || image.includes('production')) {
     throw new Error('aborting because specified image might be a production image');
   }
 
-  const defaultPorts = [8546, 8547];
-  const desiredPorts = [desiredPort, ...defaultPorts];
-  const port = await getPort({port: desiredPorts.filter(check.assigned)});
   const docker = new Docker();
-  debug.extend('start')(`creating container for ${image} and export to port ${port} …`);
+  debug.extend('start')(`creating container for ${image} and export to port ${imagePort} …`);
   const container = await docker.createContainer({
     name: `rlay-performance-tests-${uuid()}`,
     Image: image,
     ExposedPorts: { '8546/tcp:': {} },
     HostConfig: {
-      PortBindings: { '8546/tcp': [{ HostPort: `${port}` }] },
+      PortBindings: { '8546/tcp': [{ HostPort: `${imagePort}` }] },
     }
   });
   const shortContainerId = container.id.slice(-6);
@@ -39,4 +42,4 @@ const stopAndRemoveContainer = async (container, debug) => {
   await container.remove();
 }
 
-module.exports = { startContainer, stopAndRemoveContainer };
+module.exports = { getFreePort, startContainer, stopAndRemoveContainer };
