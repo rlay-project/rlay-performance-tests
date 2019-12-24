@@ -5,6 +5,13 @@ const argv = require('yargs').argv;
 const pLimit = require('p-limit');
 const GenerateREOs = require('./generateRlayEntityObjects');
 const { Client } = require('@rlay/rlay-client-lib');
+const Docker = require('dockerode');
+const getPort = require('get-port');
+const check = require('check-types');
+const {
+  startContainer,
+  stopAndRemoveContainer,
+} = require('./docker.js');
 
 const createClient = (storeLimit = 50, readLimit = 50) => {
   const RpcUrl = argv.rpc || 'http://localhost:8546';
@@ -24,7 +31,22 @@ const findDuplicates = async rlayClient => {
     RETURN a.cid`);
 }
 
+
+const rlayImage = process.env.RLAY_IMAGE;
+check.assert.string(rlayImage, 'no rlay image specified through RLAY_IMAGE env var');
+// RLAY_HOST_PORT does not need to be defined; will try 8546, 8547, or get a free one
+const rlayHostPort = process.env.RLAY_HOST_PORT;
+
 describe('RlayPerformance', () => {
+  let container;
+  const debugDocker = debug.extend('docker');
+  before(async () => {
+    container = await startContainer(rlayImage, debugDocker, rlayHostPort);
+  });
+  after(async () => {
+    stopAndRemoveContainer(container, debugDocker);
+  });
+
   describe('write', async () => {
     const debugWrite = debug.extend('write');
 

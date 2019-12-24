@@ -5,16 +5,19 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "DEBUG=rlayPerformance* mocha test/performance.js --exit --not-timeouts"
+    "test": "DEBUG=rlayPerformance* mocha test/performance.js --exit --no-timeouts"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@rlay/rlay-client-lib": "^0.2.2",
     "@rlay/transform": "^0.3.1",
+    "check-types": "^11.1.1",
     "debug": "^4.1.1",
     "delay": "^4.3.0",
-    "uuid": "^3.3.2",
+    "dockerode": "^3.0.2",
+    "get-port": "^5.1.0",
+    "uuid": "^3.3.3",
     "yargs": "^13.2.4"
   }
 }
