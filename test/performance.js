@@ -1,3 +1,4 @@
+/* eslint-env node, mocha */
 const debug = require('debug')('rlayPerformance');
 const delay = require('delay');
 const argv = require('yargs').argv;
@@ -23,38 +24,38 @@ const findDuplicates = async rlayClient => {
     RETURN a.cid`);
 }
 
-const main = async () => {
-  const debugWrite = debug.extend('write');
+describe('RlayPerformance', () => {
+  describe('write', async () => {
+    const debugWrite = debug.extend('write');
 
-  const limit = pLimit(1);
-  const entityLimit = pLimit(1);
-  const storeLimitIncrements = [1, 10, 50, 100, 500];
-  const entityIncrements = [1, 5, 10, 50, 100]//, 500]//, 1000]//, 5000, 10000, 50000];
+    const limit = pLimit(1);
+    const entityLimit = pLimit(1);
+    const storeLimitIncrements = [1, 10, 50, 100, 500];
+    const entityIncrements = [1, 5, 10, 50, 100]//, 500]//, 1000]//, 5000, 10000, 50000];
 
-  return Promise.all(storeLimitIncrements.map(async storeLimitIncrement => {
-    return limit(async () => {
-      // setup debugger for this param increment
-      const thisDebug = debugWrite.extend(`storeLimit:${storeLimitIncrement}`);
-      // create the right rlay client for the param increment
-      const rlayClient = createClient(storeLimitIncrement, storeLimitIncrement);
-      // reset the database (neo) to empty state
-      await purgeDatabase(rlayClient)
-      await Promise.all(entityIncrements.map(async entityIncrement => {
-        return entityLimit(async () => {
-          // setup debugger for this increment
-          const thisThisDebug = thisDebug.extend(`entities:${entityIncrement}`);
-          // generate unique, random rlay entity objects
-          const generatedREOs = GenerateREOs(entityIncrement);
-          // create the rlay entity objects
-          const start = Date.now();
-          await Promise.all(generatedREOs.map(e => rlayClient.createEntity(e)));
-          thisThisDebug('%sms', Date.now() - start);
-        });
-      }));
-      const duplicates = await findDuplicates(rlayClient);
-      thisDebug.extend(`duplicates`)(duplicates.length);
+    storeLimitIncrements.forEach(storeLimitIncrement => {
+      it(`write:storeLimit:${storeLimitIncrement}`, async () => {
+        // setup debugger for this param increment
+        const thisDebug = debugWrite.extend(`storeLimit:${storeLimitIncrement}`);
+        // create the right rlay client for the param increment
+        const rlayClient = createClient(storeLimitIncrement, storeLimitIncrement);
+        // reset the database (neo) to empty state
+        //await purgeDatabase(rlayClient)
+        await Promise.all(entityIncrements.map(async entityIncrement => {
+          return entityLimit(async () => {
+            // setup debugger for this increment
+            const thisThisDebug = thisDebug.extend(`entities:${entityIncrement}`);
+            // generate unique, random rlay entity objects
+            const generatedREOs = GenerateREOs(entityIncrement);
+            // create the rlay entity objects
+            const start = Date.now();
+            await Promise.all(generatedREOs.map(e => rlayClient.createEntity(e)));
+            thisThisDebug('%sms', Date.now() - start);
+          });
+        }));
+        const duplicates = await findDuplicates(rlayClient);
+        thisDebug.extend(`duplicates`)(duplicates.length);
+      });
     });
-  }));
-}
-
-main();
+  });
+});
