@@ -2,6 +2,7 @@
   "name": "rlay-performance-tests",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "DEBUG=rlayPerformance* mocha test/performance.js --exit --not-timeouts"
